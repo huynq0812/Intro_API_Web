@@ -8,7 +8,7 @@ namespace Intro_API_Web.IRepository
 {
     public interface IUnitOfWork :IDisposable
     {
-        IGenericRepository<Login> Logins { get; }
+        IGenericRepository<ApiUser> ApiUser { get; }
         Task Save();
     }
 }

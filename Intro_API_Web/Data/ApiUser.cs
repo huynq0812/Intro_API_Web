@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -7,12 +8,9 @@ using System.Threading.Tasks;
 
 namespace Intro_API_Web.Controllers.Data
 {
-    [Authorize]
-    public class Login
+    public class ApiUser : IdentityUser
     {
-        [Key]       
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string ConfirmPassword { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
     }
 }

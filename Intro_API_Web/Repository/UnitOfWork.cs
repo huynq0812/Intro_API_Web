@@ -11,14 +11,14 @@ namespace Intro_API_Web.Repository
     {
         private readonly DatabaseContext _context;
 
-        private IGenericRepository<Login> _logins;
+        private IGenericRepository<ApiUser> _apiUser;
 
         public UnitOfWork(DatabaseContext context)
         {
             _context = context;
         }
 
-        public IGenericRepository<Login> Logins { get => _logins ??= new GenericRepository<Login>(_context); }
+        public IGenericRepository<ApiUser> ApiUser { get => _apiUser ??= new GenericRepository<ApiUser>(_context); }
 
         public void Dispose()
         {

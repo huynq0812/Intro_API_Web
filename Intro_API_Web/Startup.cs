@@ -1,6 +1,8 @@
+using Intro_API_Web.Configurations;
 using Intro_API_Web.Controllers.Data;
 using Intro_API_Web.IRepository;
 using Intro_API_Web.Repository;
+using Intro_API_Web.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -33,6 +35,11 @@ namespace Intro_API_Web
             services.AddDbContext<DatabaseContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
             );
+
+            services.AddAuthentication();
+            services.ConfigureIdentity();
+            services.ConfigureJWT(Configuration);
+
             services.AddCors(o =>
             {
                 o.AddPolicy("CorsPolicy", buider =>
@@ -41,7 +48,11 @@ namespace Intro_API_Web
                  .AllowAnyHeader());
             });
 
+            services.AddAutoMapper(typeof(MapperInitilizer));
+
             services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+            services.AddScoped<IAuthManager, AuthManager>();
 
             services.AddSwaggerGen(c =>
             {
@@ -67,6 +78,8 @@ namespace Intro_API_Web
             app.UseCors("CorsPolicy");
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
