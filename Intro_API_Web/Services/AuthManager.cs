@@ -37,7 +37,7 @@ namespace Intro_API_Web.Services
 
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials siginingCredentials, List<Claim> claims)
         {
-            var jwtSettings = _configuration.GetSection("JWT");
+            var jwtSettings = _configuration.GetSection("Jwt");
             var expiration = DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings.GetSection("").Value));
             var token = new JwtSecurityToken(
                 issuer: jwtSettings.GetSection("Issuser").Value,
@@ -67,7 +67,7 @@ namespace Intro_API_Web.Services
 
         private SigningCredentials GetSigningCredentials()
         {
-            var key = Environment.GetEnvironmentVariable("Key");
+            var key = _configuration["Jwt:Key"];
             var secret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
 
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);

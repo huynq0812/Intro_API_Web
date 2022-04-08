@@ -24,8 +24,8 @@ namespace Intro_API_Web
 
         public static void ConfigureJWT(this IServiceCollection service,IConfiguration configuration)
         {
-            var jwtSettings = configuration.GetSection("JWT");
-            var key = Environment.GetEnvironmentVariable("Key");
+            var jwtSettings = configuration.GetSection("Jwt");
+            var key = configuration["Jwt:Key"];
 
             service.AddAuthentication(o =>
             {
