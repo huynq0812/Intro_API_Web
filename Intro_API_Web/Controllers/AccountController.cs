@@ -20,20 +20,20 @@ namespace Intro_API_Web.Controllers
     public class AccountController : ControllerBase
     {
         private readonly UserManager<ApiUser> _userManager;
-        //private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly SignInManager<ApiUser> _signInManager;
         private readonly IMapper _mapper;
         private readonly ILogger<AccountController> _logger;
         private readonly IAuthManager _authManager;
 
 
         public AccountController(UserManager<ApiUser> userManager,
-            //SignInManager<IdentityUser> signInManager,
-            IMapper mapper, 
-            ILogger<AccountController> logger, 
+            SignInManager<ApiUser> signInManager,
+            IMapper mapper,
+            ILogger<AccountController> logger,
             IAuthManager authManager)
         {
             _userManager = userManager;
-            //_signInManager = signInManager;
+            _signInManager = signInManager;
             _mapper = mapper;
             _logger = logger;
             _authManager = authManager;
@@ -64,6 +64,7 @@ namespace Intro_API_Web.Controllers
                     }
                     return BadRequest($"User register failed");
                 }
+                await _signInManager.SignInAsync(user, isPersistent: false);
                 await _userManager.AddToRolesAsync(user, userDTO.Roles);
                 return Accepted();
             }
@@ -92,6 +93,7 @@ namespace Intro_API_Web.Controllers
                 {
                     return Unauthorized();
                 }
+
                 return Accepted(new { Token = await _authManager.CreateToken() });
             }
             catch (Exception ex)
@@ -101,30 +103,30 @@ namespace Intro_API_Web.Controllers
             }
         }
 
-        //[HttpGet]
-        //[Route("logout")]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    _logger.LogInformation($"Logout User");
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-        //    try
-        //    {
-        //        await _signInManager.SignOutAsync();
-        //        return Ok("Logged out");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, $"Something wrong in the {nameof(Logout)}");
-        //        return Problem($"Something wrong in the {nameof(Logout)}", statusCode: 500);
-        //    }
-        //}
+        [HttpGet]
+        [Route("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            _logger.LogInformation($"Logout User");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                await _signInManager.SignOutAsync();
+                return Accepted("Logged out");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Something wrong in the {nameof(Logout)}");
+                return Problem($"Something wrong in the {nameof(Logout)}", statusCode: 500);
+            }
+        }
 
         [HttpPost]
         [Route("forget_password")]
-        public async Task<IActionResult> ForgetPassWord(string email, string newPassword)
+        public async Task<IActionResult> ForgetPassWord(string email)
         {
             _logger.LogInformation($"Forget Password Attemp for {email}");
             if (!ModelState.IsValid)
@@ -133,20 +135,54 @@ namespace Intro_API_Web.Controllers
             }
             try
             {
+                if (email == null)
+                {
+                    return Problem($"Please input your mail");
+                }
                 var currUser = await _userManager.FindByNameAsync(email);
                 if (currUser == null)
                 {
                     return Problem($"Don't have any email like this {email}");
                 }
                 var token = await _userManager.GeneratePasswordResetTokenAsync(currUser);
-                var result = await _userManager.ResetPasswordAsync(currUser, token, newPassword);
-                return Accepted();
+                return Ok(token);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Something wrong in the {nameof(ForgetPassWord)}");
                 return Problem($"Something wrong in the {nameof(ForgetPassWord)}", statusCode: 500);
             }
-        }     
+        }
+
+
+        [HttpPost]
+        [Route("reset_password")]
+        public async Task<IActionResult> ResetPassWord(string email,string token, string newPassword)
+        {
+            _logger.LogInformation($"Forget Password Attemp for {email}");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                if (newPassword == null || email == null)
+                {
+                    return Problem($"Please input your mail and new password");
+                }
+                var currUser = await _userManager.FindByNameAsync(email);
+                if (currUser == null)
+                {
+                    return Problem($"Don't have any email like this {email}");
+                }                
+                var result = await _userManager.ResetPasswordAsync(currUser, token, newPassword);
+                return Ok("Your passwod is already change");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Something wrong in the {nameof(ForgetPassWord)}");
+                return Problem($"Something wrong in the {nameof(ForgetPassWord)}", statusCode: 500);
+            }
+        }
     }
 }
